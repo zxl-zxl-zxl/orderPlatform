@@ -1,0 +1,24 @@
+{
+  "status":"0",
+  "msg":"",
+  "result":[
+    {
+        "productId":"10001",
+        "productName":"小米6",
+        "prodcutPrice":"2499",
+        "prodcutImg":"1.jpg"
+    },
+    {
+      "productId":"10002",
+      "productName":"小米笔记本",
+      "prodcutPrice":"2499",
+      "prodcutImg":"2.jpg"
+    },
+    {
+      "productId":"10003",
+      "productName":"小米6",
+      "prodcutPrice":"2499",
+      "prodcutImg":"3.jpg"
+    }
+  ]
+}
