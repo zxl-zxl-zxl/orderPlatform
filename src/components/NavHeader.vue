@@ -89,7 +89,7 @@
 
           <a
             class="navbar-link navbar-cart-link"
-            href="/#/cart"
+            href="/cart"
           >
             <svg class="navbar-cart-logo">
               <use

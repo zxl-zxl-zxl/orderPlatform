@@ -18,6 +18,11 @@ module.exports = {
       "/goods/*": {
         target: "http://localhost:3000"
       },
+      //users一级路由,一个*二级路由,两个*三级路由
+      // "/users/**": {
+      //   target: "http://localhost:3000"
+      // },
+      //**可以实现三级路由，为了方便改为二级路由
       "/users/*": {
         target: "http://localhost:3000"
       }

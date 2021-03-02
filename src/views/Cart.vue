@@ -104,6 +104,8 @@
                     <a
                       href="javascipt:;"
                       class="checkbox-btn item-check-btn"
+                      v-bind:class="{'check':item.checked=='1'}"
+                      @click="editCart('check',item)"
                     >
                       <svg class="icon icon-ok">
                         <use xlink:href="#icon-ok"></use>
@@ -111,34 +113,44 @@
                     </a>
                   </div>
                   <div class="cart-item-pic">
-                    <img v-bind:src="'/static/'+item.productImage" v-bind:alt="item.productName">
+                    <img
+                      v-bind:src="'/static/'+item.productImage"
+                      v-bind:alt="item.productName"
+                    >
                   </div>
                   <div class="cart-item-title">
                     <div class="item-name">{{item.productName}}</div>
                   </div>
                 </div>
                 <div class="cart-tab-2">
-                  <div class="item-price">{{item.salePrice}}</div>
+                  <div class="item-price">{{item.salePrice|currency('￥')}}</div>
                 </div>
                 <div class="cart-tab-3">
                   <div class="item-quantity">
                     <div class="select-self select-self-open">
                       <div class="select-self-area">
-                        <a class="input-sub">-</a>
+                        <a
+                          class="input-sub"
+                          @click="editCart('minus',item)"
+                        >-</a>
                         <span class="select-ipt">{{item.productNum}}</span>
-                        <a class="input-add">+</a>
+                        <a
+                          class="input-add"
+                          @click="editCart('add',item)"
+                        >+</a>
                       </div>
                     </div>
                   </div>
                 </div>
                 <div class="cart-tab-4">
-                  <div class="item-price-total">{{item.productNum*item.salePrice}}</div>
+                  <div class="item-price-total">{{item.productNum*item.salePrice|currency('￥')}}</div>
                 </div>
                 <div class="cart-tab-5">
                   <div class="cart-item-opration">
                     <a
                       href="javascript:;"
                       class="item-edit-btn"
+                      @click="delCartConfirm(item.productId)"
                     >
                       <svg class="icon icon-del">
                         <use xlink:href="#icon-del"></use>
@@ -154,8 +166,14 @@
           <div class="cart-foot-inner">
             <div class="cart-foot-l">
               <div class="item-all-check">
-                <a href="javascipt:;">
-                  <span class="checkbox-btn item-check-btn">
+                <a
+                  href="javascipt:;"
+                  @click="toggleCheckAll"
+                >
+                  <span
+                    class="checkbox-btn item-check-btn"
+                    v-bind:class="{'check':checkAllFlag}"
+                  >
                     <svg class="icon icon-ok">
                       <use xlink:href="#icon-ok" />
                     </svg>
@@ -166,16 +184,38 @@
             </div>
             <div class="cart-foot-r">
               <div class="item-total">
-                Item total: <span class="total-price">500</span>
+                Item total: <span class="total-price">{{totalPrice|currency('￥')}}</span>
               </div>
               <div class="btn-wrap">
-                <a class="btn btn--red">Checkout</a>
+                <a
+                  class="btn btn--red"
+                  v-bind:class="{'btn--dis':checkedCount==0}"
+                  @click="checkOut"
+                >Checkout</a>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+    <modal
+      :md-show="modalConfirm"
+      @close="closeModal"
+    >
+      <p slot="message">你确认要删除此条数据吗？</p>
+      <div slot="btnGroup">
+        <a
+          class="btn btn--m"
+          href="javascript:;"
+          @click="delCart"
+        >确认</a>
+        <a
+          class="btn btn--m"
+          href="javascript:;"
+          @click="modalConfirm = false"
+        >关闭</a>
+      </div>
+    </modal>
     <nav-footer></nav-footer>
   </div>
 </template>
@@ -211,14 +251,20 @@ import NavFooter from "@/components/NavFooter.vue";
 import NavBread from "@/components/NavBread.vue";
 import axios from "axios";
 import Modal from "@/components/Modal.vue"; // 模态框
+import { currency } from "@/util/currency";
 export default {
   data() {
     return {
       cartList: [],
+      modalConfirm: false, //控制模态框显示
+      // checkAllFlag: false, // 控制全选
     };
   },
   mounted() {
     this.init();
+  },
+  filters: {
+    currency: currency, // 冒号后面的currency是表示一个函数,因为currency.js传过来的本就是函数;冒号前面的currency是过滤器
   },
   components: {
     NavHeader,
@@ -226,13 +272,131 @@ export default {
     NavBread,
     Modal,
   },
+  computed: {
+    // 实时计算的是属性，只不过是函数的写法，data里面就不用再声明了
+    // 是否全选属性
+    checkAllFlag() {
+      return this.checkedCount == this.cartList.length; // 勾选的商品种数=购物车商品列表的商品种数时，返回true代表全选。
+    },
+    // 获取已勾选的商品种数(几种商品已勾选)
+    checkedCount() {
+      var i = 0;
+      this.cartList.forEach((item) => {
+        if (item.checked == "1") i++;
+      });
+      // console.log(i)
+      return i;
+    },
+    // 总价格属性
+    totalPrice() {
+      var money = 0;
+      this.cartList.forEach((item) => {
+        if (item.checked == "1") {
+          money += parseFloat(item.salePrice) * parseInt(item.productNum);
+        }
+      });
+      return money;
+    },
+  },
   methods: {
     init() {
       axios.get("/users/cartList").then((response) => {
-        console.log(response,"cart的response")
+        console.log(response, "cart的response");
         let res = response.data;
         this.cartList = res.result;
       });
+    },
+    closeModal() {
+      this.modalConfirm = false; //关闭模态框
+    },
+    delCartConfirm(productId) {
+      // console.log(this,'delCartConfirm的this')
+      this.productId = productId;
+      this.modalConfirm = true; //弹出模态框
+      console.log(this.productId);
+    },
+    //购物车删除
+    delCart() {
+      // console.log(this.productId)
+      axios
+        .post("/users/cartDel", {
+          productId: this.productId,
+        })
+        .then((response) => {
+          let res = response.data;
+          if (res.status == "0") {
+            this.modalConfirm = false;
+            this.init(); // 重新初始化购物车数据
+          }
+        });
+    },
+    //修改商品数量
+    editCart(flag, item) {
+      if (flag == "add") {
+        // 添加商品数量
+        item.productNum++;
+      } else if (flag == "minus") {
+        // 减少商品数量
+        if (item.productNum <= 1) {
+          return;
+        }
+        item.productNum--;
+      } else {
+        // 商品控制选中
+        item.checked = item.checked == "1" ? "0" : "1";
+      }
+      axios
+        .post("/users/cartEdit", {
+          productId: item.productId,
+          productNum: item.productNum,
+          checked: item.checked,
+        })
+        .then((response) => {
+          let res = response.data;
+        });
+    },
+    // 全选和取消全选
+    // toggleCheckAll() {
+    //   this.checkAllFlag = !this.checkAllFlag; // 取反
+    //   this.cartList.forEach((item) => {
+    //     item.checked = this.checkAllFlag;
+    //   });
+    //   axios
+    //     .post("/users/editCheckAll", {
+    //       checkAll: this.checkAllFlag,
+    //     })
+    //     .then((response) => {
+    //       let res = response.data;
+    //       if (res.status == "0") {
+    //         console.log("update suc");
+    //       }
+    //     });
+    // },
+    // 全选和取消全选
+    toggleCheckAll() {
+      // this.checkAllFlag = !this.checkAllFlag;
+      /*       不能使用这种写法了，checkAllFlag是实时计算的属性，如果true取反变成false之后，还没来得及执行下面的所有商品取消勾选，就实时计算了检测到勾选的商品种数=购物车商品列表的商品种数,就又变成全选了。 */
+      var flag = !this.checkAllFlag; // 声明变量取代
+      this.cartList.forEach((item) => {
+        item.checked = flag ? "1" : "0";
+      });
+      axios
+        .post("/users/editCheckAll", {
+          checkAll: flag,
+        })
+        .then((response) => {
+          let res = response.data;
+          if (res.status == "0") {
+            console.log("update suc");
+          }
+        });
+    },
+    checkOut() {
+      if (this.checkedCount > 0) {
+        this.$router.push({
+          path: "/address",
+        });
+      }
     },
   },
 };
