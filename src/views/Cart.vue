@@ -147,10 +147,11 @@
                 </div>
                 <div class="cart-tab-5">
                   <div class="cart-item-opration">
+                    <!-- 本来@click="delCartConfirm(item.productId)", //为了下面delCart()拿到所删除商品的对应数量,所以传item -->
                     <a
                       href="javascript:;"
                       class="item-edit-btn"
-                      @click="delCartConfirm(item.productId)"
+                      @click="delCartConfirm(item)"
                     >
                       <svg class="icon icon-del">
                         <use xlink:href="#icon-del"></use>
@@ -309,28 +310,36 @@ export default {
     closeModal() {
       this.modalConfirm = false; //关闭模态框
     },
-    delCartConfirm(productId) {
-      // console.log(this,'delCartConfirm的this')
-      this.productId = productId;
+    // delCartConfirm(productId) {
+    //   // console.log(this,'delCartConfirm的this')
+    //   this.productId = productId;
+    //   this.modalConfirm = true; //弹出模态框
+    //   // console.log(this.productId);
+    // },
+    //为了下面delCart()拿到所删除商品的对应数量,本来传item.productId改为传item
+    delCartConfirm(item) {
+      this.delItem = item;
       this.modalConfirm = true; //弹出模态框
-      console.log(this.productId);
     },
     //购物车删除
     delCart() {
       // console.log(this.productId)
       axios
         .post("/users/cartDel", {
-          productId: this.productId,
+          productId: this.delItem.productId,
         })
         .then((response) => {
           let res = response.data;
           if (res.status == "0") {
             this.modalConfirm = false;
             this.init(); // 重新初始化购物车数据
+            this.productNum;
+            // this.$store.commit("updateCartCount", -1);
+            this.$store.commit("updateCartCount", -this.delItem.productNum);
           }
         });
     },
-    //修改商品数量
+    //修改商品数量--商品加减和勾选
     editCart(flag, item) {
       if (flag == "add") {
         // 添加商品数量
@@ -353,6 +362,13 @@ export default {
         })
         .then((response) => {
           let res = response.data;
+          let num = 0;
+          if (flag == "add") {//点加号
+            num = 1;
+          } else if (flag == "minus") {//点减号
+            num = -1;
+          }
+          this.$store.commit("updateCartCount", num);
         });
     },
     // 全选和取消全选

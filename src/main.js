@@ -5,7 +5,7 @@ import App from "./App";
 import router from "./router";
 import VueLazyload from "vue-lazyload";
 import infiniteScroll from "vue-infinite-scroll";
-import Vuex from "Vuex";
+import Vuex from "vuex";
 
 Vue.config.productionTip = false;
 
@@ -15,17 +15,23 @@ Vue.use(VueLazyload, {
 Vue.use(infiniteScroll);
 Vue.use(Vuex);
 
-const store = new Vuex.store({
+// 建立store对象
+const store = new Vuex.Store({
   state: {
-    nickName: "",
-    cartCount: 0
+    nickName: "", // 用户名
+    cartCount: 0 // 购物车数量
   },
   mutations: {
+    // 更改状态
+    //更新用户信息
     updateUserInfo(state, nickName) {
       state.nickName = nickName;
     },
-    updateCartCount(state,cart){
-      state.cartCount+=cartCount
+    updateCartCount(state, cartCount) {
+      state.cartCount += parseFloat(cartCount);
+    },
+    initCartCount(state, cartCount) {
+      state.cartCount = cartCount;
     }
   }
 });
@@ -33,7 +39,7 @@ const store = new Vuex.store({
 /* eslint-disable no-new */
 new Vue({
   el: "#app",
-  store,
+  store, // 使用store
   router,
   components: { App },
   template: "<App/>"

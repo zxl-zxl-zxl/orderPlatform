@@ -87,17 +87,24 @@
             v-else
           >Logout</a>
 
-          <a
-            class="navbar-link navbar-cart-link"
-            href="/cart"
-          >
-            <svg class="navbar-cart-logo">
-              <use
-                xmlns:xlink="http://www.w3.org/1999/xlink"
-                xlink:href="#icon-cart"
-              ></use>
-            </svg>
-          </a>
+          <div class="navbar-cart-container">
+            <span
+              class="navbar-cart-count"
+              v-text="cartCount"
+              v-if="cartCount>0"
+            ></span>
+            <a
+              class="navbar-link navbar-cart-link"
+              href="/cart"
+            >
+              <svg class="navbar-cart-logo">
+                <use
+                  xmlns:xlink="http://www.w3.org/1999/xlink"
+                  xlink:href="#icon-cart"
+                ></use>
+              </svg>
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -240,6 +247,7 @@ a {
 <script>
 import "../assets/css/login.css";
 import axios from "axios";
+import { mapState } from "vuex";
 export default {
   data() {
     return {
@@ -247,8 +255,17 @@ export default {
       userPwd: "",
       errorTip: false, //账号密码错误提示显示
       loginModalFlag: false, //登录框显示
-      nickName: "", //用户登录后用户名显示
+      // nickName: "", //用户登录后用户名显示
     };
+  },
+  computed: {
+    /*     nickName() {
+      return this.$store.state.nickName;
+    },
+    cartCount(){
+       return this.$store.state.cartCount;
+    } */
+    ...mapState(["nickName", "cartCount"]),
   },
   mounted() {
     this.checkLogin();
@@ -269,31 +286,45 @@ export default {
           if (res.status == "0") {
             this.errorTip = false;
             this.loginModalFlag = false;
-            this.nickName = res.result.userName;
+            // this.nickName = res.result.userName;
+            this.$store.commit("updateUserInfo", res.result.userName);
+            this.getCartCount(); //查询购物车商品数量
             //to do
           } else {
             this.errorTip = true;
           }
         });
     },
+    //退出登录
     logOut() {
       axios.post("/users/logout").then((response) => {
         let res = response.data;
         if (res.status == "0") {
-          this.nickName = "";
+          // this.nickName = "";
+          this.$store.commit("updateUserInfo", "");
+          this.getCartCount(); //查询购物车商品数量
         }
       });
     },
-    checkLogin() {// 检查是否登录
+    checkLogin() {
+      // 检查是否登录
       axios.get("/users/checkLogin").then((response) => {
-        console.log(response,'检查是否登录response')
+        console.log(response, "检查是否登录response");
         let res = response.data;
         // let path = this.$route.pathname;
         if (res.status == "0") {
-          this.nickName = res.result;
-          // this.$store.commit("updateUserInfo", res.result);
+          // this.nickName = res.result;
+          this.$store.commit("updateUserInfo", res.result);
+          this.getCartCount();  // 查询购物车商品数量
           // this.loginModalFlag = false;
         }
+      });
+    },
+    // 查询购物车商品数量
+    getCartCount() {
+      axios.get("/users/getCartCount").then((response) => {
+        let res = response.data;
+        this.$store.commit("initCartCount", res.result);
       });
     },
   },
