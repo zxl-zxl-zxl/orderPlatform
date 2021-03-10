@@ -2295,10 +2295,12 @@ html {
 
   .md-modal .md-modal-inner {
     padding: 0 !important;
+    display: flex;
+    justify-content: center;
   }
 
   .md-modal .confirm-tips, .md-modal .alert-tips {
-    padding: 30px 10px;
+    padding: 58px 20px 10px 20px
   }
 
   .md-modal .confirm-tips {

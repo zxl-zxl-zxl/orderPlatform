@@ -78,3 +78,36 @@
   visibility: visible;
   height: auto;
 }
+/* 登录框大小 */
+@media only screen and (max-width: 767px) {
+  .login-wrap{
+    margin-top:0px;
+    padding:0 80px 30px 80px;
+  }
+  .md-title{
+    padding:8px 20px!important
+  }
+  .regi_form_input{
+    width: 270px;
+  }
+  .regi_form_input .regi_login_input{
+    width:220px
+  }
+  .md-content .btn-login{
+    width:80px;
+    padding:5px 20px;
+    display:inline
+  }
+  .confirm-tips{
+    display: block !important;
+  }
+  .md-modal .md-close {
+    display:block
+  }
+}
+/* 登录框大小 */
+@media only screen and (min-width: 767px) and (max-width: 991px) {
+  .regi_form_input {
+    width: 435px;
+  }
+}
