@@ -55,12 +55,12 @@ Session的数据信息存放在服务器上。 */
             userName: doc.userName
           }
         });
-      }else{
+      } else {
         res.json({
-          status:'1',
-          msg:'账户密码错误',
-          result:''
-        })
+          status: "1",
+          msg: "账户密码错误",
+          result: ""
+        });
       }
     }
   });
@@ -332,7 +332,8 @@ router.post("/payMent", function(req, res, next) {
   // 前端传参：订单的地址id;订单最终的总金额
   var userId = req.cookies.userId,
     addressId = req.body.addressId,
-    orderTotal = req.body.orderTotal;
+    orderTotal = req.body.orderTotal,
+    productIdList = req.body.productIdList;
   //创建订单的方式
   User.findOne({ userId: userId }, function(err, doc) {
     if (err) {
@@ -386,15 +387,54 @@ router.post("/payMent", function(req, res, next) {
             result: ""
           });
         } else {
-          // 返回订单的id和订单的总金额给前端，下一个页面要用到
-          res.json({
-            status: "0",
-            msg: "",
-            result: {
-              orderId: order.orderId, //给到前端展示出来
-              orderTotal: order.orderTotal //给到前端展示出来
-            }
+          //点击支付按钮 从购物车中把这些商品删掉
+          productIdList.forEach(item => {
+            User.update(
+              {
+                userId: userId //查询条件
+              },
+              {
+                //$pull是把数据干掉
+                $pull: {
+                  cartList: {
+                    productId: item.productId
+                  }
+                }
+              },
+              function(err, doc) {
+                if (err) {
+                  res.json({
+                    status: "1",
+                    msg: err.message,
+                    result: ""
+                  });
+                } else {
+                  // 返回订单的id和订单的总金额给前端，下一个页面要用到
+                  res.json({
+                    status: "0",
+                    msg:
+                      "购物车选中数据删除成功,返回订单id和订单总金额给前端成功",
+                    result: {
+                      orderId: order.orderId, //给到前端展示出来
+                      orderTotal: order.orderTotal //给到前端展示出来
+                    }
+                  });
+                }
+              }
+            );
           });
+
+          //本来是直接返回订单的id和订单的总金额给前端,但是购物车的商品并没有变化↓
+
+          // // 返回订单的id和订单的总金额给前端，下一个页面要用到
+          // res.json({
+          //   status: "0",
+          //   msg: "购物车选中数据删除成功,返回订单id和订单总金额给前端成功",
+          //   result: {
+          //     orderId: order.orderId, //给到前端展示出来
+          //     orderTotal: order.orderTotal //给到前端展示出来
+          //   }
+          // });
         }
       });
     }
@@ -402,79 +442,82 @@ router.post("/payMent", function(req, res, next) {
 });
 
 //根据订单Id查询订单信息
-router.get("/orderDetail", function (req,res,next) {
-  var userId = req.cookies.userId,orderId = req.param("orderId");
-  User.findOne({userId:userId}, function (err,userInfo) {
-      if(err){
+router.get("/orderDetail", function(req, res, next) {
+  var userId = req.cookies.userId,
+    orderId = req.param("orderId");
+  User.findOne({ userId: userId }, function(err, userInfo) {
+    if (err) {
+      res.json({
+        status: "1",
+        msg: err.message,
+        result: ""
+      });
+    } else {
+      var orderList = userInfo.orderList;
+      if (orderList.length > 0) {
+        var orderTotal = 0;
+        orderList.forEach(item => {
+          if (item.orderId == orderId) {
+            orderTotal = item.orderTotal;
+          }
+        });
+        if (orderTotal > 0) {
+          //假设总金额>0订单存在
           res.json({
-             status:'1',
-             msg:err.message,
-             result:''
+            status: "0",
+            msg: "",
+            result: {
+              orderId: orderId,
+              orderTotal: orderTotal
+            }
           });
-      }else{
-         var orderList = userInfo.orderList;
-         if(orderList.length>0){
-           var orderTotal = 0;
-           orderList.forEach((item)=>{
-              if(item.orderId == orderId){
-                orderTotal = item.orderTotal;
-              }
-           });
-           if(orderTotal>0){//假设总金额>0订单存在
-             res.json({
-               status:'0',
-               msg:'',
-               result:{
-                 orderId:orderId,
-                 orderTotal:orderTotal
-               }
-             })
-           }else{//假设总金额<=0订单不存在
-             res.json({
-               status:'120002',
-               msg:'无此订单',
-               result:''
-             });
-           }
-         }else{
-           res.json({
-             status:'120001',
-             msg:'当前用户未创建订单',
-             result:''
-           });
-         }
+        } else {
+          //假设总金额<=0订单不存在
+          res.json({
+            status: "120002",
+            msg: "无此订单",
+            result: ""
+          });
+        }
+      } else {
+        res.json({
+          status: "120001",
+          msg: "当前用户未创建订单",
+          result: ""
+        });
       }
-  })
+    }
+  });
 });
 
 // 查询购物车商品数量
-router.get("/getCartCount", function (req,res,next) {
-  if(req.cookies && req.cookies.userId){
-    console.log("userId:"+req.cookies.userId);
+router.get("/getCartCount", function(req, res, next) {
+  if (req.cookies && req.cookies.userId) {
+    console.log("userId:" + req.cookies.userId);
     var userId = req.cookies.userId;
-    User.findOne({"userId":userId}, function (err,doc) {
-      if(err){
+    User.findOne({ userId: userId }, function(err, doc) {
+      if (err) {
         res.json({
-          status:"0",
-          msg:err.message
+          status: "0",
+          msg: err.message
         });
-      }else{
+      } else {
         let cartList = doc.cartList;
         let cartCount = 0;
-        cartList.map(function(item){
+        cartList.map(function(item) {
           cartCount += parseFloat(item.productNum);
         });
         res.json({
-          status:"0",
-          msg:"",
-          result:cartCount
+          status: "0",
+          msg: "",
+          result: cartCount
         });
       }
     });
-  }else{
+  } else {
     res.json({
-      status:"0",
-      msg:"当前用户不存在"
+      status: "0",
+      msg: "当前用户不存在"
     });
   }
 });

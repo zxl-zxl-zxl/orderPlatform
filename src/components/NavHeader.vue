@@ -219,7 +219,7 @@ a {
   padding-top: 10px;
 }
 .navbar-link {
-  padding-left: 15px;
+  padding-right: 12px;
 }
 .navbar-cart-container {
   position: relative;
@@ -229,7 +229,7 @@ a {
   align-items: center;
   position: absolute;
   top: -9px;
-  right: -11px;
+  right: 6px;
   width: 20px;
   border-radius: 10px;
   color: white;

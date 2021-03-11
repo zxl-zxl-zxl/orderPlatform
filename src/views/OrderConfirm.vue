@@ -190,6 +190,7 @@ export default {
       tax: 400,
       subTotal: 0,
       orderTotal: 0,
+      productIdList: [],
     };
   },
   mounted() {
@@ -211,8 +212,10 @@ export default {
         this.cartList.forEach((item) => {
           if (item.checked == "1") {
             this.subTotal += item.salePrice * item.productNum;
+            this.productIdList.push(item); //购物车选中的商品
           }
         });
+        // console.log(this.productIdList, this.cartList, "productIdList&cartList");
         this.orderTotal =
           this.subTotal + this.shipping - this.discount + this.tax;
       });
@@ -222,11 +225,12 @@ export default {
       // 从路由那里获取到订单地址的id
       // http://localhost:8080/orderConfirm?addressId=100001
       var addressId = this.$route.query.addressId;
-      console.log(addressId)
+      // console.log(addressId)
       axios
         .post("/users/payment", {
           addressId: addressId,
           orderTotal: this.orderTotal,
+          productIdList: this.productIdList,//购物车选中的商品,想要实现点击支付按钮从购物车中把这些商品删掉
         })
         .then((response) => {
           let res = response.data;
