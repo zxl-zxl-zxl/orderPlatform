@@ -145,6 +145,7 @@
                 infinite-scroll-disabled="busy"
                 infinite-scroll-distance="30"
               >
+              <!-- infinite-scroll-distance="10"这里10决定了页面滚动到离页尾多少像素的时候触发回调函数，10是像素值。通常我们会在页尾做一个几十像素高的“正在加载中...”，这样的话，可以把这个div的高度设为infinite-scroll-distance的值即可。 -->
                 <!-- 加载中... -->
                 <img
                   v-show="loading"
@@ -209,6 +210,7 @@
       @click="closePop"
     ></div>
     <nav-footer></nav-footer>
+    <nav-mobile></nav-mobile>
   </div>
 </template>
 
@@ -225,6 +227,7 @@ import "../assets/css/product.css";
 import NavHeader from "@/components/NavHeader.vue";
 import NavFooter from "@/components/NavFooter.vue";
 import NavBread from "@/components/NavBread.vue";
+import NavMobile from "@/components/NavMobile.vue";
 import axios from "axios";
 import Modal from "@/components/Modal.vue"; // 模态框
 export default {
@@ -255,7 +258,7 @@ export default {
       sortFlag: true,
       page: 1,
       pageSize: 8,
-      busy: true,
+      busy: true,//由变量busy决定是否执行loadMore，true则不执行loadmore,false则执行loadMore
       loading: false, // 往下滚动"加载图标"的出现效果:默认不出现
       mdShow: false, // 未登录的模态框是否显示
       mdShowCart: false, // 已登录的模态框是否显示
@@ -266,6 +269,7 @@ export default {
     NavFooter,
     NavBread,
     Modal,
+    NavMobile
   },
   mounted: function () {
     this.getGoodsList();
@@ -339,7 +343,7 @@ export default {
           if (res.status == 0) {
             // alert("加入成功");
             this.mdShowCart = true; // 加入购物车成功，成功的模态框显示
-            this.$store.commit('updateCartCount',1);
+            this.$store.commit("updateCartCount", 1);
           } else {
             // alert("msg:" + res.msg);
             this.mdShow = true; // 未登录模态框显示

@@ -29,6 +29,7 @@ router.get("/list", function(req, res, next) {
   let pageSize = parseInt(req.param("pageSize"));
   let priceLevel = req.param("priceLevel"); //传过来的价格区间
   let sort = req.param("sort");
+
   let skip = (page - 1) * pageSize;
   var priceGt = "",
     priceLte = "";
@@ -68,6 +69,7 @@ router.get("/list", function(req, res, next) {
     .limit(pageSize);
   //3)sort排序
   goodsModel.sort({ salePrice: sort });
+  //1 为升序排列，而 -1 是用于降序排列
   // 连接成功之后，用model的good商品模型查询到数据库的goods集合。
   goodsModel.exec(function(err, doc) {
     // Goods来自models/goods.js;导出的是mongoose的商品模型，可使用mongoose的API方法

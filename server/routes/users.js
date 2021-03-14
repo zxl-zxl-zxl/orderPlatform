@@ -522,4 +522,68 @@ router.get("/getCartCount", function(req, res, next) {
   }
 });
 
+// 查询订单id、订单金额、订单创建时间
+// router.get("/orderList", function(req, res, next) {
+//   if (req.cookies && req.cookies.userId) {
+//     console.log("userId:" + req.cookies.userId);
+//     var userId = req.cookies.userId;
+//     User.findOne({ userId: userId }, function(err, doc) {
+//       if (err) {
+//         res.json({
+//           status: "0",
+//           msg: err.message
+//         });
+//       } else {
+//         let orderList = doc.orderList;
+//         res.json({
+//           status: "0",
+//           msg: "",
+//           result: orderList
+//         });
+//       }
+//     });
+//   } else {
+//     res.json({
+//       status: "0",
+//       msg: "当前用户不存在"
+//     });
+//   }
+// });
+
+// 查询订单id、订单金额、订单创建时间
+router.get("/orderList", function(req, res, next) {
+  if (req.cookies && req.cookies.userId) {
+    console.log("userId:" + req.cookies.userId);
+    var userId = req.cookies.userId;
+    let listModel = Goods.find({ userId: userId });
+    listModel.sort({ createDate: -1 });
+    //1 为升序排列，而 -1 是用于降序排列
+    // 连接成功之后，用model的good商品模型查询到数据库的goods集合。
+    listModel.exec(function(err, doc) {
+      // Goods来自models/goods.js;导出的是mongoose的商品模型，可使用mongoose的API方法
+      if (err) {
+        res.json({
+          status: "1",
+          msg: err.message
+        });
+      } else {
+        res.json({
+          status: "0",
+          msg: "",
+          result: {
+            status: "0",
+            msg: "",
+            result: doc.orderList
+          }
+        });
+      }
+    });
+  } else {
+    res.json({
+      status: "0",
+      msg: "当前用户不存在"
+    });
+  }
+});
+
 module.exports = router;
