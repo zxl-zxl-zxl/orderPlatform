@@ -78,6 +78,7 @@
       </ul>
     </div>
     <nav-footer></nav-footer>
+    <nav-mobile v-if="this.deviceType==='mobile'"></nav-mobile>
   </div>
 </template>
 <script>
@@ -86,6 +87,7 @@ import NavFooter from "@/components/NavFooter.vue";
 import NavBread from "@/components/NavBread.vue";
 import axios from "axios";
 import { currency } from "@/util/currency";
+import NavMobile from "@/components/NavMobile.vue";
 export default {
   data() {
     return {
@@ -94,15 +96,25 @@ export default {
         { orderId: 2, orderTotal: 200, createDate: "2021-01-01" },
         { orderId: 3, orderTotal: 300, createDate: "2021-01-01" },
       ],
+      deviceType: "",
     };
-  },
-  mounted() {
-    this.init();
   },
   components: {
     NavHeader,
     NavFooter,
     NavBread,
+    NavMobile,
+  },
+  mounted() {
+    this.init();
+    //根据是否是手机端显示底部导航栏
+    if (this._isMobile()) {
+      alert("手机端");
+      this.deviceType = "mobile";
+    } else {
+      alert("pc端");
+      this.deviceType = "pc";
+    }
   },
   filters: {
     currency: currency,
@@ -113,6 +125,12 @@ export default {
         let res = response.data;
         this.orderList = res.result;
       });
+    },
+    _isMobile() {
+      let flag = navigator.userAgent.match(
+        /(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i
+      );
+      return flag;
     },
   },
 };

@@ -523,58 +523,26 @@ router.get("/getCartCount", function(req, res, next) {
 });
 
 // 查询订单id、订单金额、订单创建时间
-// router.get("/orderList", function(req, res, next) {
-//   if (req.cookies && req.cookies.userId) {
-//     console.log("userId:" + req.cookies.userId);
-//     var userId = req.cookies.userId;
-//     User.findOne({ userId: userId }, function(err, doc) {
-//       if (err) {
-//         res.json({
-//           status: "0",
-//           msg: err.message
-//         });
-//       } else {
-//         let orderList = doc.orderList;
-//         res.json({
-//           status: "0",
-//           msg: "",
-//           result: orderList
-//         });
-//       }
-//     });
-//   } else {
-//     res.json({
-//       status: "0",
-//       msg: "当前用户不存在"
-//     });
-//   }
-// });
-
-// 查询订单id、订单金额、订单创建时间
 router.get("/orderList", function(req, res, next) {
   if (req.cookies && req.cookies.userId) {
     console.log("userId:" + req.cookies.userId);
     var userId = req.cookies.userId;
-    let listModel = Goods.find({ userId: userId });
-    listModel.sort({ createDate: -1 });
-    //1 为升序排列，而 -1 是用于降序排列
-    // 连接成功之后，用model的good商品模型查询到数据库的goods集合。
-    listModel.exec(function(err, doc) {
-      // Goods来自models/goods.js;导出的是mongoose的商品模型，可使用mongoose的API方法
+    User.findOne({ userId: userId }, function(err, doc) {
       if (err) {
         res.json({
-          status: "1",
+          status: "0",
           msg: err.message
         });
       } else {
+        let orderList = [];
+        doc.orderList.forEach(item=>{
+          orderList.unshift(item)
+        })//为了实现按日期倒序
+        // let orderList = doc.orderList;
         res.json({
           status: "0",
           msg: "",
-          result: {
-            status: "0",
-            msg: "",
-            result: doc.orderList
-          }
+          result: orderList
         });
       }
     });
@@ -585,5 +553,43 @@ router.get("/orderList", function(req, res, next) {
     });
   }
 });
+
+//实现按日期倒序sort不会写啊,不知道是不是用sort,不知道咋按倒序查找出来,我不写了还不行吗,在上面俺查出来了再用数组倒序哼!!!
+// 查询订单id、订单金额、订单创建时间
+// router.get("/orderList", function(req, res, next) {
+//   if (req.cookies && req.cookies.userId) {
+//     console.log("userId:" + req.cookies.userId);
+//     var userId = req.cookies.userId;
+//     let listModel = User.find({ userId: userId });
+//     listModel=listModel[0].orderList
+//     listModel.sort({ createDate: -1 });
+
+//     // listModel.sort({ "orderList.createDate": -1 });
+//     //1 为升序排列，而 -1 是用于降序排列
+//     // 连接成功之后，用model的good商品模型查询到数据库的goods集合。
+//     listModel.exec(function(err, doc) {
+//       // User来自models/user.js;导出的是mongoose的商品模型，可使用mongoose的API方法
+//       if (err) {
+//         res.json({
+//           status: "1",
+//           msg: err.message
+//         });
+//       } else {
+//         //注意doc是数组，不是对象
+//         // let orderList = doc;
+//         res.json({
+//           status: "0",
+//           msg: "正常",
+//           result: { orderList: doc }
+//         });
+//       }
+//     });
+//   } else {
+//     res.json({
+//       status: "00",
+//       msg: "当前用户不存在"
+//     });
+//   }
+// });
 
 module.exports = router;
